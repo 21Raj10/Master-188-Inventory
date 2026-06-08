@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Master Inventory</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f5f5;--bg3:#eeeeee;
+  --text:#111111;--text2:#555555;--text3:#888888;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-text:#185FA5;
+  --green-bg:#EAF3DE;--green-text:#3B6D11;
+  --amber-bg:#FAEEDA;--amber-text:#854F0B;
+  --red-bg:#FCEBEB;--red-text:#A32D2D;
+  --radius:10px;--radius-sm:6px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1a1a;--bg2:#242424;--bg3:#2e2e2e;
+    --text:#f0f0f0;--text2:#aaaaaa;--text3:#777777;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+    --blue:#5aa3e8;--blue-bg:#0c2d4a;--blue-text:#85b7eb;
+    --green-bg:#1a2e0d;--green-text:#97c459;
+    --amber-bg:#2e1f05;--amber-text:#ef9f27;
+    --red-bg:#2e0d0d;--red-text:#f09595;
+  }
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.5;overflow-x:hidden}
+.app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto}
+
+/* Header */
+.header{padding:14px 16px 10px;background:var(--bg);border-bottom:0.5px solid var(--border)}
+.header-top{display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:18px;font-weight:600;letter-spacing:-0.3px}
+.header-sub{font-size:12px;color:var(--text3);margin-top:2px}
+
+/* Tabs */
+.tabs{display:flex;background:var(--bg);border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:10}
+.tab{flex:1;padding:11px 4px 10px;text-align:center;font-size:12px;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;transition:all .18s;user-select:none}
+.tab i{display:block;font-size:20px;margin-bottom:2px}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:500}
+
+/* Scroll area */
+.scroll{flex:1;overflow-y:auto;padding:12px 12px 80px}
+
+/* Search */
+.search-bar{display:flex;gap:8px;margin-bottom:10px}
+.search-bar input{flex:1;padding:9px 12px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;background:var(--bg);color:var(--text);outline:none}
+.search-bar input:focus{border-color:var(--blue)}
+.icon-btn{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);color:var(--text2);cursor:pointer;font-size:18px;flex-shrink:0}
+.icon-btn:active{background:var(--bg2)}
+
+/* Filter chips */
+.chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:5px 12px;border-radius:20px;font-size:12px;border:0.5px solid var(--border2);cursor:pointer;white-space:nowrap;background:var(--bg);color:var(--text2);transition:all .15s;user-select:none}
+.chip.active{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue)}
+
+/* Cards */
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:background .15s}
+.card:active{background:var(--bg2)}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.card-name{font-weight:500;font-size:15px;line-height:1.3}
+.card-meta{font-size:12px;color:var(--text3);margin-top:2px}
+.badge{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500;white-space:nowrap;flex-shrink:0}
+.b-green{background:var(--green-bg);color:var(--green-text)}
+.b-amber{background:var(--amber-bg);color:var(--amber-text)}
+.b-red{background:var(--red-bg);color:var(--red-text)}
+.b-blue{background:var(--blue-bg);color:var(--blue-text)}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.stat{background:var(--bg2);border-radius:var(--radius-sm);padding:8px 10px}
+.stat-label{font-size:11px;color:var(--text3)}
+.stat-val{font-size:16px;font-weight:500;margin-top:1px}
+.stat-val.warn{color:var(--red-text)}
+.card-footer{margin-top:8px;display:flex;gap:7px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);cursor:pointer;font-size:14px;font-family:inherit;transition:background .15s;white-space:nowrap}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:active{background:#2670b8}
+.btn-success{background:var(--green-bg);color:var(--green-text);border-color:#C0DD97}
+.btn-danger{background:var(--red-bg);color:var(--red-text);border-color:#F7C1C1}
+.btn-block{width:100%;justify-content:center}
+.btn-sm{padding:6px 10px;font-size:13px}
+
+/* FAB */
+.fab{position:fixed;bottom:24px;right:16px;width:54px;height:54px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:50;box-shadow:0 3px 12px rgba(55,138,221,0.4)}
+.fab:active{transform:scale(0.94)}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg);border-radius:18px 18px 0 0;padding:20px 16px 36px;width:100%;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-title{font-size:17px;font-weight:600;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.close-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--bg2);border:none;font-size:16px;color:var(--text2);cursor:pointer}
+
+/* Form fields */
+.field{margin-bottom:11px}
+.field label{font-size:13px;color:var(--text2);display:block;margin-bottom:4px;font-weight:500}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue)}
+.field textarea{height:72px;resize:vertical}
+.row2-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* Scan area */
+.scan-box{background:var(--bg2);border:0.5px dashed var(--border2);border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:14px}
+.scan-icon{font-size:38px;color:var(--text3);margin-bottom:6px}
+.scan-title{font-size:14px;font-weight:500;margin-bottom:3px}
+.scan-note{font-size:12px;color:var(--text3);margin-bottom:10px}
+.scan-video-wrap{display:none;margin-top:10px;border-radius:var(--radius);overflow:hidden;position:relative}
+.scan-video-wrap video{width:100%;display:block}
+.scan-overlay{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);color:#fff;font-size:12px;padding:5px;text-align:center}
+.scan-stop{position:absolute;top:8px;right:8px;padding:4px 10px;font-size:12px}
+
+/* Divider */
+.divider{height:0.5px;background:var(--border);margin:12px 0}
+
+/* Detail rows */
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:0.5px solid var(--border);gap:12px}
+.detail-row:last-child{border-bottom:none}
+.detail-key{font-size:13px;color:var(--text3);flex-shrink:0}
+.detail-val{font-size:13px;font-weight:500;text-align:right;word-break:break-word}
+
+/* Empty */
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty i{font-size:36px;display:block;margin-bottom:10px}
+.empty p{font-size:14px}
+
+/* btn-row */
+.btn-row{display:flex;gap:8px;margin-top:16px}
+.btn-row .btn{flex:1}
+
+/* Section show/hide */
+.section{display:none}
+.section.active{display:block}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <h1><i class="ti ti-clipboard-list" style="vertical-align:-3px;margin-right:6px;color:var(--blue)" aria-hidden="true"></i>Master Inventory</h1>
+    </div>
+    <div class="header-sub" id="summary-sub">Loading...</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('parts')" id="tab-parts"><i class="ti ti-box" aria-hidden="true"></i>Parts</div>
+    <div class="tab" onclick="switchTab('materials')" id="tab-materials"><i class="ti ti-layers-intersect" aria-hidden="true"></i>Materials</div>
+    <div class="tab" onclick="switchTab('tools')" id="tab-tools"><i class="ti ti-tool" aria-hidden="true"></i>Tools</div>
+  </div>
+
+  <div class="scroll">
+    <!-- Parts -->
+    <div class="section active" id="sec-parts">
+      <div class="search-bar">
+        <input type="text" id="parts-search" placeholder="Search parts, vendor PN..." oninput="renderParts()">
+        <button class="icon-btn" onclick="openScanner('parts')" aria-label="Scan barcode"><i class="ti ti-scan" aria-hidden="true"></i></button>
+      </div>
+      <div class="chips" id="parts-chips"></div>
+      <div id="parts-list"></div>
+    </div>
+
+    <!-- Materials -->
+    <div class="section" id="sec-materials">
+      <div class="search-bar">
+        <input type="text" id="mat-search" placeholder="Search materials..." oninput="renderMaterials()">
+        <button class="icon-btn" onclick="openScanner('materials')" aria-label="Scan barcode"><i class="ti ti-scan" aria-hidden="true"></i></button>
+      </div>
+      <div id="mat-list"></div>
+    </div>
+
+    <!-- Tools -->
+    <div class="section" id="sec-tools">
+      <div class="search-bar">
+        <input type="text" id="tools-search" placeholder="Search tools or Tool ID..." oninput="renderTools()">
+        <button class="icon-btn" onclick="openScanner('tools')" aria-label="Scan barcode"><i class="ti ti-scan" aria-hidden="true"></i></button>
+      </div>
+      <div class="chips">
+        <div class="chip active" onclick="setToolFilter('All',this)">All</div>
+        <div class="chip" onclick="setToolFilter('Available',this)">Available</div>
+        <div class="chip" onclick="setToolFilter('Checked Out',this)">Checked out</div>
+      </div>
+      <div id="tools-list"></div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" onclick="openAddModal()" aria-label="Add new item"><i class="ti ti-plus" aria-hidden="true"></i></button>
+
+<!-- Add / Edit Modal -->
+<div class="modal-bg" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="add-modal-title">Add item</span>
+      <button class="close-btn" onclick="closeModal('add-modal')" aria-label="Close">×</button>
+    </div>
+    <div class="scan-box">
+      <div class="scan-icon"><i class="ti ti-qrcode" aria-hidden="true"></i></div>
+      <div class="scan-title">Scan barcode or QR code</div>
+      <div class="scan-note">Point camera at label to auto-fill the ID field</div>
+      <button class="btn btn-primary btn-block" onclick="startScan('add')"><i class="ti ti-camera" aria-hidden="true"></i> Open camera</button>
+      <div class="scan-video-wrap" id="add-video-wrap">
+        <video id="add-video" autoplay playsinline muted></video>
+        <div class="scan-overlay">Scanning — hold steady...</div>
+        <button class="btn btn-danger scan-stop" onclick="stopScan('add')">Stop</button>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:13px;font-weight:500;color:var(--text3);margin-bottom:10px">Or enter manually:</div>
+    <div class="field">
+      <label>Category</label>
+      <select id="add-tab" onchange="updateAddForm()">
+        <option value="parts">Parts</option>
+        <option value="materials">Materials</option>
+        <option value="tools">Tools</option>
+      </select>
+    </div>
+    <div id="add-fields"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItem()"><i class="ti ti-check" aria-hidden="true"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Checkout Modal -->
+<div class="modal-bg" id="checkout-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="co-modal-title">Check out tool</span>
+      <button class="close-btn" onclick="closeModal('checkout-modal')" aria-label="Close">×</button>
+    </div>
+    <div class="scan-box">
+      <div class="scan-icon"><i class="ti ti-qrcode" aria-hidden="true"></i></div>
+      <div class="scan-title">Scan tool barcode</div>
+      <div class="scan-note">Auto-fills Tool ID — or enter details below</div>
+      <button class="btn btn-primary btn-block" onclick="startScan('checkout')"><i class="ti ti-camera" aria-hidden="true"></i> Open camera</button>
+      <div class="scan-video-wrap" id="checkout-video-wrap">
+        <video id="checkout-video" autoplay playsinline muted></video>
+        <div class="scan-overlay">Scanning — hold steady...</div>
+        <button class="btn btn-danger scan-stop" onclick="stopScan('checkout')">Stop</button>
+      </div>
+    </div>
+    <div class="field"><label>Tool name</label><input type="text" id="co-tool" placeholder="e.g. Rivet Gun"></div>
+    <div class="field"><label>Tool ID</label><input type="text" id="co-id" placeholder="e.g. T-001"></div>
+    <div class="field"><label>Borrowed by</label><input type="text" id="co-person" placeholder="Full name" autocomplete="name"></div>
+    <div class="field"><label>Expected return date</label><input type="date" id="co-return"></div>
+    <div class="field"><label>Condition</label>
+      <select id="co-condition"><option>Good</option><option>Fair</option><option>Needs repair</option></select>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="co-notes" placeholder="Optional..."></textarea></div>
+    <div class="btn-row">
+      <button class="btn" onclick="closeModal('checkout-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCheckout()"><i class="ti ti-arrow-right" aria-hidden="true"></i> Check out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-bg" id="detail-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="detail-title">Details</span>
+      <button class="close-btn" onclick="closeModal('detail-modal')" aria-label="Close">×</button>
+    </div>
+    <div id="detail-body"></div>
+    <div class="btn-row" id="detail-actions"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+// ── State ────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'masterInventory_v1';
+let activeTab = 'parts';
+let toolFilter = 'All';
+let checkoutIdx = null;
+let scanStreams = {};
+let scanAnimFrames = {};
+
+const today = () => new Date().toISOString().split('T')[0];
+
+const defaultData = {
+  parts: [
+    {id:'P001',name:'NEO Motor',category:'Electrical',vendor:'REV Robotics',vendorPN:'REV-21-1650',qty:8,minQty:2,unitCost:49.99,location:'Electrical Cabinet A',status:'In Stock',notes:''},
+    {id:'P002',name:'Spark MAX',category:'Electrical',vendor:'REV Robotics',vendorPN:'REV-11-2158',qty:12,minQty:4,unitCost:89.99,location:'Electrical Cabinet B',status:'In Stock',notes:''},
+    {id:'P003',name:'1/4-20 Bolt x 1"',category:'Hardware',vendor:'McMaster-Carr',vendorPN:'91251A540',qty:250,minQty:50,unitCost:0.15,location:'Hardware Bin H3',status:'In Stock',notes:''},
+  ],
+  materials: [
+    {id:'M001',type:'6061 Aluminum',thickness:'0.125',width:'24',length:'48',qty:5,location:'Material Rack A',status:'Available'},
+    {id:'M002',type:'Polycarbonate',thickness:'0.093',width:'24',length:'48',qty:3,location:'Material Rack B',status:'Available'},
+  ],
+  tools: [
+    {id:'T-001',name:'Rivet Gun',borrowedBy:'',dateOut:'',expectedReturn:'',dateReturned:'',condition:'Good',status:'Available',notes:''},
+    {id:'T-002',name:'Crimper',borrowedBy:'',dateOut:'',expectedReturn:'',dateReturned:'',condition:'Good',status:'Available',notes:''},
+  ]
+};
+
+let data = loadData();
+
+function loadData(){
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    return s ? JSON.parse(s) : JSON.parse(JSON.stringify(defaultData));
+  } catch(e){ return JSON.parse(JSON.stringify(defaultData)); }
+}
+
+function saveData(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────
+function switchTab(t){
+  activeTab = t;
+  ['parts','materials','tools'].forEach(name => {
+    document.getElementById('tab-'+name).classList.toggle('active', name===t);
+    document.getElementById('sec-'+name).classList.toggle('active', name===t);
+  });
+  document.getElementById('add-tab').value = t;
+  updateAddForm();
+}
+
+function setToolFilter(f, el){
+  toolFilter = f;
+  document.querySelectorAll('#sec-tools .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderTools();
+}
+
+// ── Badge helpers ─────────────────────────────────────────────────────
+function badge(text, cls){ return `<span class="badge ${cls}">${text}</span>`; }
+
+function statusBadge(status){
+  if(!status) return '';
+  const s = status.toLowerCase();
+  if(s.includes('stock') || s.includes('available')) return badge(status,'b-green');
+  if(s.includes('checked out') || s.includes('out')) return badge(status,'b-amber');
+  if(s.includes('low') || s.includes('reorder')) return badge(status,'b-red');
+  return badge(status,'b-blue');
+}
+
+// ── Summary ───────────────────────────────────────────────────────────
+function updateSummary(){
+  const lowParts = data.parts.filter(p => p.qty <= p.minQty).length;
+  const checkedOut = data.tools.filter(t => t.status === 'Checked Out').length;
+  const parts = [ data.parts.length + ' parts' ];
+  if(lowParts) parts.push(lowParts + ' low stock');
+  const tools = [ data.tools.length + ' tools' ];
+  if(checkedOut) tools.push(checkedOut + ' checked out');
+  document.getElementById('summary-sub').textContent =
+    parts.join(' · ') + ' · ' + data.materials.length + ' materials · ' + tools.join(' · ');
+}
+
+// ── Parts ─────────────────────────────────────────────────────────────
+function renderParts(){
+  const q = (document.getElementById('parts-search').value||'').toLowerCase();
+  const chipsEl = document.getElementById('parts-chips');
+  const cats = ['All', ...new Set(data.parts.map(p=>p.category))];
+  if(!chipsEl._built || chipsEl._cats !== cats.join()){
+    chipsEl._built = true; chipsEl._cats = cats.join(); chipsEl._active = chipsEl._active||'All';
+    chipsEl.innerHTML = cats.map(c=>
+      `<div class="chip${c===chipsEl._active?' active':''}" onclick="setPartCat('${c}',this)">${c}</div>`
+    ).join('');
+  }
+  const cat = chipsEl._active || 'All';
+  const list = data.parts.filter(p => {
+    const mq = !q || p.name.toLowerCase().includes(q) || (p.vendorPN||'').toLowerCase().includes(q) || (p.id||'').toLowerCase().includes(q);
+    const mc = cat==='All' || p.category===cat;
+    return mq && mc;
+  });
+  const el = document.getElementById('parts-list');
+  if(!list.length){ el.innerHTML='<div class="empty"><i class="ti ti-package-off" aria-hidden="true"></i><p>No parts found</p></div>'; return; }
+  el.innerHTML = list.map(p => {
+    const idx = data.parts.indexOf(p);
+    const low = p.qty <= p.minQty;
+    return `<div class="card" onclick="showDetail('parts',${idx})">
+      <div class="card-head">
+        <div><div class="card-name">${esc(p.name)}</div><div class="card-meta">${esc(p.vendorPN)} · ${esc(p.vendor)}</div></div>
+        ${low ? badge('Low stock','b-red') : statusBadge(p.status)}
+      </div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-label">Qty on hand</div><div class="stat-val${low?' warn':''}">${p.qty}</div></div>
+        <div class="stat"><div class="stat-label">Location</div><div class="stat-val" style="font-size:13px">${esc(p.location)||'—'}</div></div>
+      </div>
+      <div class="card-meta" style="margin-top:8px">${esc(p.category)} · $${p.unitCost.toFixed(2)}/unit · Min: ${p.minQty}</div>
+    </div>`;
+  }).join('');
+  updateSummary();
+}
+
+window.setPartCat = function(c, el){
+  document.getElementById('parts-chips')._active = c;
+  document.querySelectorAll('#parts-chips .chip').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  renderParts();
+};
+
+// ── Materials ─────────────────────────────────────────────────────────
+function renderMaterials(){
+  const q = (document.getElementById('mat-search').value||'').toLowerCase();
+  const list = data.materials.filter(m => !q || m.type.toLowerCase().includes(q) || (m.id||'').toLowerCase().includes(q));
+  const el = document.getElementById('mat-list');
+  if(!list.length){ el.innerHTML='<div class="empty"><i class="ti ti-stack-2" aria-hidden="true"></i><p>No materials found</p></div>'; return; }
+  el.innerHTML = list.map(m => {
+    const idx = data.materials.indexOf(m);
+    return `<div class="card" onclick="showDetail('materials',${idx})">
+      <div class="card-head">
+        <div><div class="card-name">${esc(m.type)}</div><div class="card-meta">${esc(m.id)} · ${esc(m.location)}</div></div>
+        ${statusBadge(m.status)}
+      </div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-label">Qty</div><div class="stat-val">${m.qty}</div></div>
+        <div class="stat"><div class="stat-label">Size (in)</div><div class="stat-val" style="font-size:12px">${esc(m.thickness)}" × ${esc(m.width)}" × ${esc(m.length)}"</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Tools ─────────────────────────────────────────────────────────────
+function renderTools(){
+  const q = (document.getElementById('tools-search').value||'').toLowerCase();
+  const list = data.tools.filter(t => {
+    const mq = !q || t.name.toLowerCase().includes(q) || t.id.toLowerCase().includes(q);
+    const mf = toolFilter==='All' || t.status===toolFilter;
+    return mq && mf;
+  });
+  const el = document.getElementById('tools-list');
+  if(!list.length){ el.innerHTML='<div class="empty"><i class="ti ti-tools-kitchen-off" aria-hidden="true"></i><p>No tools found</p></div>'; return; }
+  el.innerHTML = list.map(t => {
+    const idx = data.tools.indexOf(t);
+    const co = t.status==='Checked Out';
+    return `<div class="card" onclick="showDetail('tools',${idx})">
+      <div class="card-head">
+        <div><div class="card-name">${esc(t.name)}</div><div class="card-meta">${esc(t.id)}</div></div>
+        ${statusBadge(t.status)}
+      </div>
+      ${co ? `<div class="card-meta" style="margin-top:5px"><i class="ti ti-user" aria-hidden="true" style="vertical-align:-1px;font-size:13px"></i> ${esc(t.borrowedBy)} · Due: ${t.expectedReturn||'—'}</div>` : ''}
+      <div class="card-footer">
+        ${!co
+          ? `<button class="btn btn-success btn-sm" onclick="event.stopPropagation();openCheckout(${idx})"><i class="ti ti-arrow-right" aria-hidden="true"></i> Check out</button>`
+          : `<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();returnTool(${idx})"><i class="ti ti-arrow-left" aria-hidden="true"></i> Return</button>`}
+      </div>
+    </div>`;
+  }).join('');
+  updateSummary();
+}
+
+// ── Detail modal ──────────────────────────────────────────────────────
+function showDetail(tab, idx){
+  const item = data[tab][idx];
+  document.getElementById('detail-title').textContent = tab==='materials' ? item.type : item.name;
+  const body = document.getElementById('detail-body');
+  const actions = document.getElementById('detail-actions');
+
+  let rows = [];
+  if(tab==='parts'){
+    rows = [['Category',item.category],['Vendor',item.vendor],['Vendor PN',item.vendorPN],['Qty on hand',item.qty],['Min qty',item.minQty],['Unit cost','$'+item.unitCost.toFixed(2)],['Location',item.location],['Status',item.status],['Notes',item.notes||'—']];
+    actions.innerHTML = `<button class="btn" onclick="promptQty('parts',${idx})"><i class="ti ti-edit" aria-hidden="true"></i> Edit qty</button><button class="btn btn-danger" onclick="deleteItem('parts',${idx})"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button>`;
+  } else if(tab==='materials'){
+    rows = [['Material type',item.type],['Thickness',item.thickness+'"'],['Width',item.width+'"'],['Length',item.length+'"'],['Qty',item.qty],['Location',item.location],['Status',item.status]];
+    actions.innerHTML = `<button class="btn" onclick="promptQty('materials',${idx})"><i class="ti ti-edit" aria-hidden="true"></i> Edit qty</button><button class="btn btn-danger" onclick="deleteItem('materials',${idx})"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button>`;
+  } else {
+    rows = [['Tool ID',item.id],['Status',item.status],['Borrowed by',item.borrowedBy||'—'],['Date out',item.dateOut||'—'],['Expected return',item.expectedReturn||'—'],['Date returned',item.dateReturned||'—'],['Condition',item.condition||'—'],['Notes',item.notes||'—']];
+    actions.innerHTML = item.status==='Available'
+      ? `<button class="btn btn-success" onclick="closeModal('detail-modal');openCheckout(${idx})"><i class="ti ti-arrow-right" aria-hidden="true"></i> Check out</button><button class="btn btn-danger" onclick="deleteItem('tools',${idx})"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button>`
+      : `<button class="btn btn-danger" onclick="returnTool(${idx});closeModal('detail-modal')"><i class="ti ti-arrow-left" aria-hidden="true"></i> Return tool</button>`;
+  }
+
+  body.innerHTML = rows.map(([k,v])=>`<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${esc(String(v??'—'))}</span></div>`).join('');
+  openModal('detail-modal');
+}
+
+function promptQty(tab, idx){
+  const item = data[tab][idx];
+  const label = tab==='parts' ? 'Qty on hand' : 'Qty';
+  const val = prompt(`Update ${label} for "${item.name||item.type}":`, item.qty);
+  if(val !== null && !isNaN(parseInt(val))){
+    item.qty = parseInt(val);
+    if(tab==='parts') item.status = item.qty <= 0 ? 'Out of Stock' : item.qty <= item.minQty ? 'Low Stock' : 'In Stock';
+    closeModal('detail-modal');
+    saveData(); renderAll();
+  }
+}
+
+function deleteItem(tab, idx){
+  if(confirm('Delete this item? This cannot be undone.')){
+    data[tab].splice(idx, 1);
+    closeModal('detail-modal');
+    saveData(); renderAll();
+  }
+}
+
+// ── Checkout ──────────────────────────────────────────────────────────
+function openCheckout(idx){
+  checkoutIdx = idx;
+  const t = data.tools[idx];
+  document.getElementById('co-modal-title').textContent = 'Check out: ' + t.name;
+  document.getElementById('co-tool').value = t.name;
+  document.getElementById('co-id').value = t.id;
+  document.getElementById('co-person').value = '';
+  document.getElementById('co-return').value = '';
+  document.getElementById('co-condition').value = 'Good';
+  document.getElementById('co-notes').value = '';
+  openModal('checkout-modal');
+}
+
+function saveCheckout(){
+  const person = document.getElementById('co-person').value.trim();
+  if(!person){ alert('Please enter the borrower\'s name.'); return; }
+  const t = data.tools[checkoutIdx];
+  t.borrowedBy = person;
+  t.dateOut = today();
+  t.expectedReturn = document.getElementById('co-return').value || '';
+  t.dateReturned = '';
+  t.condition = document.getElementById('co-condition').value;
+  t.notes = document.getElementById('co-notes').value;
+  t.status = 'Checked Out';
+  closeModal('checkout-modal');
+  saveData(); renderTools();
+}
+
+function returnTool(idx){
+  const t = data.tools[idx];
+  const cond = prompt(`Return "${t.name}". Enter condition:`, t.condition || 'Good');
+  if(cond !== null){
+    t.dateReturned = today();
+    t.condition = cond;
+    t.status = 'Available';
+    t.borrowedBy = ''; t.dateOut = ''; t.expectedReturn = '';
+    saveData(); renderTools();
+  }
+}
+
+// ── Add form ──────────────────────────────────────────────────────────
+function openAddModal(){
+  document.getElementById('add-tab').value = activeTab;
+  document.getElementById('add-modal-title').textContent = 'Add item';
+  updateAddForm();
+  openModal('add-modal');
+}
+
+function updateAddForm(){
+  const tab = document.getElementById('add-tab').value;
+  const el = document.getElementById('add-fields');
+  if(tab==='parts'){
+    el.innerHTML = `
+      <div class="field"><label>Part name *</label><input type="text" id="af-name" placeholder="e.g. NEO Motor" autocomplete="off"></div>
+      <div class="field"><label>Category</label><input type="text" id="af-cat" placeholder="e.g. Electrical" autocomplete="off"></div>
+      <div class="row2-fields">
+        <div class="field"><label>Vendor</label><input type="text" id="af-vendor" placeholder="REV Robotics"></div>
+        <div class="field"><label>Vendor PN</label><input type="text" id="af-vpn" placeholder="REV-21-1650"></div>
+      </div>
+      <div class="row2-fields">
+        <div class="field"><label>Qty</label><input type="number" id="af-qty" min="0" value="0"></div>
+        <div class="field"><label>Min qty</label><input type="number" id="af-minqty" min="0" value="0"></div>
+      </div>
+      <div class="row2-fields">
+        <div class="field"><label>Unit cost ($)</label><input type="number" id="af-cost" min="0" step="0.01" value="0.00"></div>
+        <div class="field"><label>Location</label><input type="text" id="af-loc" placeholder="Bin H3"></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="af-notes" placeholder="Optional..."></textarea></div>`;
+  } else if(tab==='materials'){
+    el.innerHTML = `
+      <div class="field"><label>Material type *</label><input type="text" id="af-type" placeholder="e.g. 6061 Aluminum" autocomplete="off"></div>
+      <div class="row2-fields">
+        <div class="field"><label>Thickness (in)</label><input type="text" id="af-thick" placeholder="0.125"></div>
+        <div class="field"><label>Width (in)</label><input type="text" id="af-width" placeholder="24"></div>
+      </div>
+      <div class="row2-fields">
+        <div class="field"><label>Length (in)</label><input type="text" id="af-len" placeholder="48"></div>
+        <div class="field"><label>Qty</label><input type="number" id="af-qty" min="0" value="1"></div>
+      </div>
+      <div class="field"><label>Location</label><input type="text" id="af-loc" placeholder="e.g. Material Rack A"></div>`;
+  } else {
+    el.innerHTML = `
+      <div class="field"><label>Tool name *</label><input type="text" id="af-name" placeholder="e.g. Rivet Gun" autocomplete="off"></div>
+      <div class="row2-fields">
+        <div class="field"><label>Tool ID</label><input type="text" id="af-toolid" placeholder="T-003"></div>
+        <div class="field"><label>Condition</label><select id="af-cond"><option>Good</option><option>Fair</option><option>Needs repair</option></select></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="af-notes" placeholder="Optional..."></textarea></div>`;
+  }
+}
+
+function saveItem(){
+  const tab = document.getElementById('add-tab').value;
+  const g = id => { const el=document.getElementById(id); return el ? el.value.trim() : ''; };
+  if(tab==='parts'){
+    const name = g('af-name');
+    if(!name){ alert('Part name is required.'); return; }
+    const newId = 'P' + String(data.parts.length + 101).padStart(3,'0');
+    data.parts.push({id:newId,name,category:g('af-cat'),vendor:g('af-vendor'),vendorPN:g('af-vpn'),qty:parseInt(g('af-qty'))||0,minQty:parseInt(g('af-minqty'))||0,unitCost:parseFloat(g('af-cost'))||0,location:g('af-loc'),status:'In Stock',notes:g('af-notes')});
+  } else if(tab==='materials'){
+    const type = g('af-type');
+    if(!type){ alert('Material type is required.'); return; }
+    const newId = 'M' + String(data.materials.length + 101).padStart(3,'0');
+    data.materials.push({id:newId,type,thickness:g('af-thick'),width:g('af-width'),length:g('af-len'),qty:parseInt(g('af-qty'))||1,location:g('af-loc'),status:'Available'});
+  } else {
+    const name = g('af-name');
+    if(!name){ alert('Tool name is required.'); return; }
+    const newId = g('af-toolid') || 'T-' + String(data.tools.length + 10).padStart(3,'0');
+    data.tools.push({id:newId,name,borrowedBy:'',dateOut:'',expectedReturn:'',dateReturned:'',condition:g('af-cond')||'Good',status:'Available',notes:g('af-notes')});
+  }
+  closeModal('add-modal');
+  saveData(); renderAll();
+}
+
+// ── Scanner ───────────────────────────────────────────────────────────
+function openScanner(tab){
+  switchTab(tab);
+  openAddModal();
+  setTimeout(() => startScan('add'), 400);
+}
+
+async function startScan(ctx){
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
+    scanStreams[ctx] = stream;
+    const video = document.getElementById(ctx+'-video');
+    video.srcObject = stream;
+    const wrap = document.getElementById(ctx+'-video-wrap');
+    wrap.style.display = 'block';
+    await video.play();
+    scanFrame(ctx, video);
+  } catch(e){
+    alert('Camera not available. Please enter information manually.\n\n('+e.message+')');
+  }
+}
+
+function stopScan(ctx){
+  if(scanStreams[ctx]){ scanStreams[ctx].getTracks().forEach(t=>t.stop()); delete scanStreams[ctx]; }
+  if(scanAnimFrames[ctx]){ cancelAnimationFrame(scanAnimFrames[ctx]); delete scanAnimFrames[ctx]; }
+  const wrap = document.getElementById(ctx+'-video-wrap');
+  if(wrap) wrap.style.display = 'none';
+}
+
+function scanFrame(ctx, video){
+  if(!scanStreams[ctx]) return;
+  if(video.readyState >= 2){
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    const c = canvas.getContext('2d');
+    c.drawImage(video, 0, 0);
+    const imgData = c.getImageData(0, 0, canvas.width, canvas.height);
+    if(typeof jsQR !== 'undefined'){
+      const code = jsQR(imgData.data, imgData.width, imgData.height, {inversionAttempts:'dontInvert'});
+      if(code){
+        stopScan(ctx);
+        handleScanResult(ctx, code.data);
+        return;
+      }
+    }
+  }
+  scanAnimFrames[ctx] = requestAnimationFrame(() => scanFrame(ctx, video));
+}
+
+function handleScanResult(ctx, val){
+  if(ctx==='add'){
+    const nameEl = document.getElementById('af-name') || document.getElementById('af-type');
+    const idEl   = document.getElementById('af-vpn')  || document.getElementById('af-toolid');
+    const found  = data.parts.find(p=>p.vendorPN===val||p.id===val) ||
+                   data.tools.find(t=>t.id===val) ||
+                   data.materials.find(m=>m.id===val);
+    if(found){ alert('Item already exists: ' + (found.name||found.type)); return; }
+    if(idEl) idEl.value = val;
+    if(nameEl && !nameEl.value) nameEl.value = val;
+  } else if(ctx==='checkout'){
+    document.getElementById('co-id').value = val;
+    const match = data.tools.find(t => t.id===val || t.name===val);
+    if(match){ document.getElementById('co-tool').value = match.name; }
+  }
+}
+
+// ── Modal helpers ─────────────────────────────────────────────────────
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); stopScan('add'); stopScan('checkout'); }
+
+// close modals on background tap
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if(e.target===bg) closeModal(bg.id); });
+});
+
+// ── Utility ───────────────────────────────────────────────────────────
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderAll(){ renderParts(); renderMaterials(); renderTools(); updateSummary(); }
+
+// ── Boot ──────────────────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>
